@@ -128,6 +128,37 @@ async function run() {
       }
     });
     
+    // DELETE
+
+    app.delete("/destination/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).json({ message: "Invalid ID" });
+        }
+
+        const result = await destinationCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
+        if (result.deletedCount === 0) {
+          return res.status(404).json({ message: "Pet not found" });
+        }
+
+        res.json({
+          success: true,
+          message: "Deleted successfully",
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: error.message,
+        });
+      }
+    });
+
+    
     // MongoDB ping
     await client.db("admin").command({ ping: 1 });
     console.log("MongoDB Ping Successful");
