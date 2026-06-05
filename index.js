@@ -205,6 +205,25 @@ async function run() {
     });
     
 
+    //Get Requests (by email)
+
+    app.get("/adoptions", async (req, res) => {
+      try {
+        const email = req.query.email;
+
+        const query = email ? { adopterEmail: email } : {};
+
+        const result = await adoptionsCollection.find(query).toArray();
+
+        res.status(200).json(result);
+      } catch (error) {
+        res.status(500).json({
+          message: "Failed to fetch requests",
+          error: error.message,
+        });
+      }
+    });
+
     // MongoDB ping
     await client.db("admin").command({ ping: 1 });
     console.log("MongoDB Ping Successful");
