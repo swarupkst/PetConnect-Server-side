@@ -158,7 +158,53 @@ async function run() {
       }
     });
 
+    //Adeption POST
+
+    app.post("/adoptions", async (req, res) => {
+      try {
+        const adoption = req.body;
+
+        const { petId, adopterEmail, ownerEmail } = adoption;
+
+      
+        if (adopterEmail === ownerEmail) {
+          return res.status(400).json({
+            success: false,
+            message: "You cannot adopt your own pet",
+          });
+        }
+
+      
+        const existingRequest = await adoptionsCollection.findOne({
+          petId,
+          adopterEmail,
+        });
+
+        if (existingRequest) {
+          return res.status(400).json({
+            success: false,
+            message: "You already requested this pet",
+          });
+        }
+
+        adoption.status = "pending";
+        adoption.createdAt = new Date();
+
+        const result = await adoptionsCollection.insertOne(adoption);
+
+        res.status(201).json({
+          success: true,
+          insertedId: result.insertedId,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: error.message,
+        });
+      }
+    });
     
+
     // MongoDB ping
     await client.db("admin").command({ ping: 1 });
     console.log("MongoDB Ping Successful");
