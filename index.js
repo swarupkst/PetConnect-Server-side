@@ -266,6 +266,100 @@ async function run() {
       }
     });
 
+    //Delete Request (Cancel)
+
+    app.delete("/adoptions/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).json({ message: "Invalid ID" });
+        }
+
+        const result = await adoptionsCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
+        res.status(200).json({
+          success: true,
+          deletedCount: result.deletedCount,
+        });
+      } catch (error) {
+        res.status(500).json({
+          message: "Delete failed",
+          error: error.message,
+        });
+      }
+    });
+
+
+    
+
+    /////////
+    app.patch("/adoptions/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const { status } = req.body;
+
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).json({ message: "Invalid ID" });
+        }
+
+        const adoption = await adoptionsCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
+        console.log("Pet ID:", adoption.petId);
+
+        if (!adoption) {
+          return res.status(404).json({
+            success: false,
+            message: "Request not found",
+          });
+        }
+
+
+        // Update request status
+        const result = await adoptionsCollection.updateOne(
+          { _id: new ObjectId(id) },
+          {
+            $set: { status },
+          }
+        );
+
+        // If approved → update pet status
+        if (status === "approved") {
+
+          await destinationCollection.updateOne(
+            {
+              _id: new ObjectId(adoption.petId),
+            },
+            {
+              $set: {
+                adoptionStatus: "Adopted",
+              },
+            }
+
+          );
+
+        }
+
+        res.status(200).json({
+          success: true,
+          modifiedCount: result.modifiedCount,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: error.message,
+        });
+      }
+    });
+
+
+    
+
+
     // MongoDB ping
     await client.db("admin").command({ ping: 1 });
     console.log("MongoDB Ping Successful");
