@@ -72,7 +72,61 @@ async function run() {
     });
 
     //////////
+// CREATE
 
+    app.post("/destination", async (req, res) => {
+      try {
+        const pet = {
+          ...req.body,
+          createdAt: new Date(), 
+        };
+
+        const result = await destinationCollection.insertOne(pet);
+
+        res.status(201).json({
+          success: true,
+          insertedId: result.insertedId,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: error.message,
+        });
+      }
+    });
+
+    // UPDATE
+
+    app.put("/destination/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const updatedData = req.body;
+
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).json({ message: "Invalid ID" });
+        }
+
+        const result = await destinationCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updatedData }
+        );
+
+        if (result.matchedCount === 0) {
+          return res.status(404).json({ message: "Pet not found" });
+        }
+
+        res.json({
+          success: true,
+          message: "Updated successfully",
+          result,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: error.message,
+        });
+      }
+    });
     
     // MongoDB ping
     await client.db("admin").command({ ping: 1 });
