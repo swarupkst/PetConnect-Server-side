@@ -34,8 +34,46 @@ async function run() {
 
     // GET ALL
 
-    
+    app.get("/destination", async (req, res) => {
+      try {
+        const result = await destinationCollection
+          .find()
+          .sort({ createdAt: -1 }) // 🔥 NEW FIRST
+          .toArray();
 
+        res.json(result);
+      } catch (error) {
+        res.status(500).json({ message: error.message });
+      }
+    });
+
+    // GET BY ID
+
+    app.get("/destination/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).json({ message: "Invalid ID" });
+        }
+
+        const pet = await destinationCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
+        if (!pet) {
+          return res.status(404).json({ message: "Pet not found" });
+        }
+
+        res.json(pet);
+      } catch (error) {
+        res.status(500).json({ message: error.message });
+      }
+    });
+
+    //////////
+
+    
     // MongoDB ping
     await client.db("admin").command({ ping: 1 });
     console.log("MongoDB Ping Successful");
