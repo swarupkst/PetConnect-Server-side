@@ -22,7 +22,27 @@ const client = new MongoClient(uri, {
   },
 });
 
+async function run() {
+  try {
+    await client.connect();
+    console.log("Connected to MongoDB");
 
+    const db = client.db("petconnect");
+    const destinationCollection = db.collection("destination");
+
+    const adoptionsCollection = db.collection("adoptions");
+
+    // GET ALL
+
+    
+
+    // MongoDB ping
+    await client.db("admin").command({ ping: 1 });
+    console.log("MongoDB Ping Successful");
+  } catch (error) {
+    console.error("MongoDB Connection Error:", error);
+  }
+}
 
 run();
 
